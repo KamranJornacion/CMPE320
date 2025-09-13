@@ -1,17 +1,38 @@
-/*
- * TestInsultGenerator.cpp
- *
- *      Author: Alan McLeod
- *      A testing program for CISC320 assignment 1.
- */
-
-#include <iostream>
+//"FileException" and "NumInsultsOutOfBounds" and the generator class "InsultGenerator"
 #include <string>
 #include <vector>
-#include <time.h>
-#include "insultgenerator_22QFC4.h"
-
 using namespace std;
+
+class InsultGenerator{
+
+    void initialize(){
+
+    };
+
+    string talkToMe(){
+
+    };
+
+    vector<string> generate(int numInsults){
+
+    };
+
+    void generateAndSave(string file, int numInsults){
+
+    };
+};
+
+class FileException : public exception{
+
+};
+
+class NumInsultsOutOfBounds : public exception{
+
+};
+    
+
+//TODO: Implement method and class handles
+
 
 int main() {
 
