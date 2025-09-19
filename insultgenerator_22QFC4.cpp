@@ -1,108 +1,109 @@
 //"FileException" and "NumInsultsOutOfBounds" and the generator class "InsultGenerator"
-#include <string>
-#include <vector>
+
+#include <fstream>
+#include <sstream>
+#include <random>
+#include <set>
+
+#include "insultgenerator_22QFC4.h"
 using namespace std;
 
-class InsultGenerator{
 
-    void initialize(){
+//InsultGenerator Methods/Constructs----------------------
+InsultGenerator::InsultGenerator()
+		: rng(random_device{}()) {}
 
-    };
+void InsultGenerator::initialize(){
+	ifstream InsultsFile("InsultsSource.txt");
 
-    string talkToMe(){
+	if(!InsultsFile.is_open()){
+		//Throw an exception
+		throw FileException("InsultsSource.txt");
+	}
 
-    };
+	insults.clear();
+	insults.resize(3);
 
-    vector<string> generate(int numInsults){
+	string currLine;
+	
+	while(getline(InsultsFile, currLine)){
+		istringstream iss(currLine);
+		string word;
 
-    };
+		for(int col =0;col<3;col++){
+			if(getline(iss,word,'\t')){
+				insults[col].push_back(word);
+			}
+		}
+		
+	}
 
-    void generateAndSave(string file, int numInsults){
+	InsultsFile.close();
 
-    };
+	
+	dist1 = uniform_int_distribution<int> (0, insults[0].size()-1);
+	dist2 = uniform_int_distribution<int> (0, insults[1].size()-1);
+	dist3 = uniform_int_distribution<int> (0, insults[2].size()-1);
 };
 
-class FileException : public exception{
+string InsultGenerator::talkToMe(){
+
+	string w1 = insults[0][dist1(rng)];
+	string w2 = insults[1][dist2(rng)];
+	string w3 = insults[2][dist3(rng)];
+
+	string insult = "Thou " + w1 + " " + w2 +" "+ w3 + "!";
+
+	return insult;
 
 };
 
-class NumInsultsOutOfBounds : public exception{
+vector<string> InsultGenerator::generate(int numInsults){
+
+	if(numInsults <1 || numInsults>10000){
+		throw NumInsultsOutOfBounds(numInsults);
+	}
+
+	set<string> insultSet;
+
+	while((int)insultSet.size()<numInsults){
+		insultSet.insert(talkToMe());
+	}
+
+	vector<string> insultList(insultSet.begin(), insultSet.end());
+
+	return insultList;
 
 };
-    
 
-//TODO: Implement method and class handles
+void InsultGenerator::generateAndSave(const string& file, int numInsults){
+	vector<string> insultsToSave = generate(numInsults);
 
-
-int main() {
-
-	InsultGenerator ig;
-	vector<string> insults;
-	clock_t start=0, finish=0;
-
-	// The initialize() method should load all the source phrases from the InsultsSource.txt file into the attributes.
-	// If the file cannot be read, the method should throw an exception.
-	try {
-		ig.initialize();
-	} catch (FileException& e) {
-		cerr << e.what() << endl;
-		return 1;
+	ofstream outFile(file);
+	if(!outFile.is_open()){
+		throw FileException(file);
 	}
 
-	// talkToMe() returns a single insult, generated at random.
-	cout << "A single insult:" << endl;
-	cout << ig.talkToMe() << endl;
-
-	// Check number to generate limits.
-	try {
-		insults = ig.generate(-100);
-	} catch (NumInsultsOutOfBounds& e) {
-		cerr << e.what() << endl;
-	}
-	try {
-		insults = ig.generate(40000);
-	} catch (NumInsultsOutOfBounds& e) {
-		cerr << e.what() << endl;
+	for( const auto& insult: insultsToSave){
+		outFile << insult<< endl;
 	}
 
-	// generate() generates the requested number of unique insults.
-	cout << "\n100 insults, all different:" << endl;
-	insults = ig.generate(100);
-	if (insults.size() > 0)
-		for (int i = 0; i < 100; i++)
-			cout << insults[i] << endl;
-	else
-		cerr << "Insults could not be generated!" << endl;
+	outFile.close();
+};
 
-	// generateAndSave() generates the requested number of unique insults and saves them to the filename
-	// supplied.  If the file cannot be written, the method should throw an exception.  Note that the
-	// insults in the file should be in alphabetical order!
-	// Check the number to generate limits first:
-	try {
-		ig.generateAndSave("Nothing.txt", 40000);
-	} catch (NumInsultsOutOfBounds& e) {
-		cerr << e.what() << endl;
-	}
-	cout << "\nSaving 1000 unique insults to a file...";
-	try {
-		ig.generateAndSave("SavedInsults.txt", 1000);
-	} catch (FileException& e) {
-		cerr << e.what() << endl;
-		return 1;
-	}
-	cout << "done." << endl;
+//FileException Methods/Construct-----------------------
+FileException::FileException(const string& filename)
+	: message_("File not found: " + filename){}
 
-	// Test ability to generate the maximum number of insults and how long it takes.
-	try {
-		start = clock();
-		insults = ig.generate(10000);
-		finish = clock();
-	} catch (NumInsultsOutOfBounds& e) {
-		cerr << e.what() << endl;
-	}
-	cout << "\n" << insults.size() << " insults generated." << endl;
-	cout << (1e3 * (finish - start)/CLOCKS_PER_SEC) << " msec to complete." << endl;
+	//What() overwrite
+const char* FileException::what() const noexcept {
+	return message_.c_str();
+}
 
-	return 0;
+//NumInsultsOutOfBounds Methods/Construct------------------
+NumInsultsOutOfBounds::NumInsultsOutOfBounds(const int numInsults)
+	: message_("NumInsults of " + to_string(numInsults) + " is invalid"){}
+const char* NumInsultsOutOfBounds::what() const noexcept{
+	return message_.c_str();
+}
 
-} // end main
