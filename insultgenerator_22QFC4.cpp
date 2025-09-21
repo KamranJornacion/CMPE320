@@ -1,5 +1,3 @@
-//"FileException" and "NumInsultsOutOfBounds" and the generator class "InsultGenerator"
-
 #include <fstream>
 #include <sstream>
 #include <random>
